@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+import sys
+import fileinput
+from collections import Counter
+
+first = lambda x: x[0]
+
+indents = []
+counter = Counter()
+original_indent_bytes = 0
+for line in fileinput.input():
+	level = 0
+	for i, c in enumerate(line):
+		if c == ' ':
+			level += 1
+		elif c == '\t':
+			level += 8
+		else:
+			rest = line[i:]
+			break
+		original_indent_bytes += 1
+
+	indents.append((level, rest))
+	counter.update([level])
+
+effective_indent = {}
+
+last = -1
+for level in sorted(counter):
+	effective_indent[level] = last + 1
+	last = last + 1
+
+indents = map(lambda x: (effective_indent[x[0]], x[1]), indents)
+levels = map(first, indents)
+counter = Counter(levels)
+max_level = max(levels)
+
+def lower_index(n, l):
+	p = None
+	for i, v in enumerate(l):
+		if v > n:
+			break
+		p = i
+	return p
+
+def get_tabs_and_spaces(level, tab_levels):
+	tabs = lower_index(level, tab_levels)
+	spaces = level - tab_levels[tabs]
+	return (tabs, spaces)
+
+def best_tab_levels(start_level, tab_levels):
+	if start_level > max_level:
+		val = 0
+		for level, lines in counter.items():
+			tabs, spaces = get_tabs_and_spaces(level, tab_levels)
+			val += (tabs + spaces) * lines
+
+		return (val, tab_levels)
+
+	best = None
+	for level in range(start_level, min(max_level, start_level + 7) + 1):
+		res = best_tab_levels(level + 2, tab_levels + [level])
+		if best == None:
+			best = res
+		else:
+			best = min(best, res, key=first)
+
+	return best
+
+indent_bytes, tab_levels = best_tab_levels(2, [0])
+
+bytes_saved = original_indent_bytes - indent_bytes
+assert bytes_saved >= 0
+
+for level, text in indents:
+	tabs, spaces = get_tabs_and_spaces(level, tab_levels)
+	sys.stdout.write('\t' * tabs + ' ' * spaces + text)
+
+sys.stderr.write('Saved {} bytes.\n'.format(bytes_saved))
