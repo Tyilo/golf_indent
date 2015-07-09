@@ -14,6 +14,54 @@ $ golf_indent script.py
 ...
 ```
 
+Example
+==
+
+`^I` is the tab character and `^D` is ctrl-D.
+
+```
+$ cat > test1.py
+0
+	1
+		2
+			3
+			3
+			3
+^D
+$ golf_indent test1.py | cat -t
+Saved 8 bytes.
+Indentation used:
+  1: 1 space
+  2: 2 spaces
+  3: 1 tab
+0
+ 1
+  2
+^I3
+^I3
+^I3
+$ cat > test2.py
+0
+	1
+		2
+		2
+		2
+			3
+^D
+$ golf_indent test2.py | cat -t
+Saved 4 bytes.
+Indentation used:
+  1: 1 space
+  2: 1 tab
+  3: 1 tab and 1 space
+0
+ 1
+^I2
+^I2
+^I2
+^I 3
+```
+
 How it works
 ==
 
@@ -22,7 +70,6 @@ In Python 2 a tab character counts as 8 spaces for indentation, but is only 1 by
 The optimal way to indent code with 3 or fewer indentation levels is always:
 
 ```
-0: <empty>
 1: space
 2: tab
 ```
@@ -32,7 +79,6 @@ However for code with more indentation levels, it depends on the number of lines
 For instance, when the code has 4 indentation levels, there are two possible optimal indentations:
 
 ```
-0: <empty>
 1: space
 2: 2 spaces
 3: tab
@@ -41,10 +87,9 @@ For instance, when the code has 4 indentation levels, there are two possible opt
 or
 
 ```
-0: <empty>
 1: space
 2: tab
 3: tab + space
 ```
 
-The script tries all possible optimal indentations for a file and outputs the file with that indentation applied. The script also prints the number of bytes saved to stderr.
+The script tries all possible optimal indentations for a file and outputs the file with that indentation applied. The script also prints the number of bytes saved and the indetation used to stderr.

@@ -76,4 +76,19 @@ for level, text in indents:
 	tabs, spaces = get_tabs_and_spaces(level, tab_levels)
 	sys.stdout.write('\t' * tabs + ' ' * spaces + text)
 
+def format_quantity(n, name):
+	if n == 0:
+		return ''
+	else:
+		s = '{} {}'.format(n, name)
+		if n > 1:
+			s += 's'
+		return s
+
 sys.stderr.write('Saved {} bytes.\n'.format(bytes_saved))
+sys.stderr.write('Indentation used:\n')
+for level in range(1, max_level + 1):
+	tabs, spaces = get_tabs_and_spaces(level, tab_levels)
+	s1 = format_quantity(tabs, 'tab')
+	s2 = format_quantity(spaces, 'space')
+	sys.stderr.write('  {}: {}{}{}\n'.format(level, s1, ' and ' if len(s1) > 0 and len(s2) > 0 else '', s2))
